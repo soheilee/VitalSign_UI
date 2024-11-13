@@ -5,16 +5,23 @@ import plotly.graph_objs as go
 import pandas as pd
 import numpy as np
 import random
+import os
 from heart_rate_engine import calculate_heart_rate  # Import the heart rate calculation engine
+# Get the directory of the current script
+script_dir = os.path.dirname(os.path.realpath(__file__))
+
+# Change the current working directory to the script's directory
+os.chdir(script_dir)
+
 
 # Initialize the Dash app
 app = dash.Dash(__name__)
 app.title = "Vital Signs Monitoring System"
 
 # Read ECG and PPG data from CSV files (assumes no headers, single column)
-ecg_df = pd.read_csv('ECG.csv', header=None, names=['ECG'])  # ECG signal data
-ppg_df = pd.read_csv('PPG.csv', header=None, names=['PPG'])  # PPG signal data
-temp_df = pd.read_csv('TEMP.csv', header=None, names=['Temp'])  # Temperature data
+ecg_df = pd.read_csv('../data/ECG.csv', header=None, names=['ECG'])  # ECG signal data
+ppg_df = pd.read_csv('../data/PPG.csv', header=None, names=['PPG'])  # PPG signal data
+temp_df = pd.read_csv('../data/TEMP.csv', header=None, names=['Temp'])  # Temperature data
 
 # Generate a time series in milliseconds (1 ms per step)
 sampling_rate = 1000  # 1000 Hz = 1 ms per sample
