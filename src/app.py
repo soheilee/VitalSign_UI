@@ -7,18 +7,19 @@ import numpy as np
 import random
 import os
 from heart_rate_engine import calculate_heart_rate  # Import the heart rate calculation engine
+from alarm_engine import check_vital_signs  # Import the check_vital_signs function from alarm_engine
+
 # Get the directory of the current script
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
 # Change the current working directory to the script's directory
 os.chdir(script_dir)
 
-
 # Initialize the Dash app
 app = dash.Dash(__name__)
 app.title = "Vital Signs Monitoring System"
 
-# Read ECG and PPG data from CSV files (assumes no headers, single column)
+# Read ECG, PPG, and Temperature data from CSV files (assumes no headers, single column)
 ecg_df = pd.read_csv('../data/ECG.csv', header=None, names=['ECG'])  # ECG signal data
 ppg_df = pd.read_csv('../data/PPG.csv', header=None, names=['PPG'])  # PPG signal data
 temp_df = pd.read_csv('../data/TEMP.csv', header=None, names=['Temp'])  # Temperature data
@@ -55,18 +56,18 @@ app.layout = html.Div(style={'backgroundColor': 'black', 'color': 'white', 'padd
         ]),
         
         # Heart Rate in the first row, last column
-        html.Div(style={'border': '1px solid white', 'padding': '10px'}, children=[
+        html.Div(id='heart-rate-container', style={'border': '1px solid white', 'padding': '10px'}, children=[
             html.Div(style={'display': 'flex', 'alignItems': 'center'}, children=[
                 html.H3("♥", style={'color': 'red', 'fontSize': '60px', 'margin': '0 10px 0 0'}),
-                html.Div(id='heart-rate-value', style={'fontSize': '60px', 'color': 'red', 'fontWeight': 'bold'})
+                html.Div(id='heart-rate-value', style={'fontSize': '60px', 'color': 'white', 'fontWeight': 'bold'})
             ])
         ]),
         
         # Respiratory Rate
-        html.Div(style={'border': '1px solid white', 'padding': '10px'}, children=[
+        html.Div(id='respiratory-rate-container', style={'border': '1px solid white', 'padding': '10px'}, children=[
             html.Div(style={'display': 'flex', 'alignItems': 'center'}, children=[
-                html.H3("🌬️", style={'color': 'yellow', 'fontSize': '60px', 'margin': '0 10px 0 0'}),
-                html.Div(id='respiratory-rate-value', style={'fontSize': '60px', 'color': 'yellow', 'fontWeight': 'bold'})
+                html.H3("🌬️", style={'color': 'white', 'fontSize': '60px', 'margin': '0 10px 0 0'}),
+                html.Div(id='respiratory-rate-value', style={'fontSize': '60px', 'color': 'white', 'fontWeight': 'bold'})
             ])
         ]),
 
@@ -76,18 +77,18 @@ app.layout = html.Div(style={'backgroundColor': 'black', 'color': 'white', 'padd
         ]),
         
         # SpO2 Value in the second row, last column
-        html.Div(style={'border': '1px solid white', 'padding': '10px'}, children=[
+        html.Div(id='spo2-container', style={'border': '1px solid white', 'padding': '10px'}, children=[
             html.Div(style={'display': 'flex', 'alignItems': 'center'}, children=[
-                html.H3("🫁", style={'color': 'lightblue', 'fontSize': '60px', 'margin': '0 10px 0 0'}),
-                html.Div(id='spo2-value', style={'fontSize': '60px', 'color': 'lightblue', 'fontWeight': 'bold'})
+                html.H3("🫁", style={'color': 'white', 'fontSize': '60px', 'margin': '0 10px 0 0'}),
+                html.Div(id='spo2-value', style={'fontSize': '60px', 'color': 'white', 'fontWeight': 'bold'})
             ])
         ]),
         
         # Body Temperature
-        html.Div(style={'border': '1px solid white', 'padding': '10px'}, children=[
+        html.Div(id='body-temp-container', style={'border': '1px solid white', 'padding': '10px'}, children=[
             html.Div(style={'display': 'flex', 'alignItems': 'center'}, children=[
-                html.H3("🌡️", style={'color': 'orange', 'fontSize': '60px', 'margin': '0 10px 0 0'}),
-                html.Div(id='body-temp-value', style={'fontSize': '60px', 'color': 'orange', 'fontWeight': 'bold'})
+                html.H3("🌡️", style={'color': 'white', 'fontSize': '60px', 'margin': '0 10px 0 0'}),
+                html.Div(id='body-temp-value', style={'fontSize': '60px', 'color': 'white', 'fontWeight': 'bold'})
             ])
         ]),
     ]),
@@ -152,12 +153,16 @@ def update_graphs(n):
 
     return ecg_fig, ppg_fig
 
-# Callback to update the vital signs
+# Callback to update the vital signs and check for alarms
 @app.callback(
     [dd.Output('heart-rate-value', 'children'),
      dd.Output('spo2-value', 'children'),
      dd.Output('respiratory-rate-value', 'children'),
-     dd.Output('body-temp-value', 'children')],
+     dd.Output('body-temp-value', 'children'),
+     dd.Output('heart-rate-container', 'style'),
+     dd.Output('spo2-container', 'style'),
+     dd.Output('respiratory-rate-container', 'style'),
+     dd.Output('body-temp-container', 'style')],
     [dd.Input('interval-component-vitals', 'n_intervals')]
 )
 def update_vital_signs(n):
@@ -176,8 +181,21 @@ def update_vital_signs(n):
     respiratory_rate = random.randint(12, 20)
     body_temp = temp_df['Temp'].iloc[start_index % len(temp_df)]  # Fetch temperature data
     
-    # Update the heart rate and other values
-    return f"{heart_rate:.1f} bpm", f"{spo2} %", f"{respiratory_rate} /min", f"{body_temp:.1f} °C"
+    # Use the alarm engine to get the appropriate color for each vital sign
+    heart_rate_color, spo2_color, respiratory_rate_color, body_temp_color = check_vital_signs(
+        heart_rate, spo2, respiratory_rate, body_temp)
+
+    # Set the background color of the boxes based on alarm state (black for normal, red for alarm)
+    heart_rate_style = {'backgroundColor': heart_rate_color, 'fontSize': '60px', 'color': 'white', 'fontWeight': 'bold','border': '2px solid white'}
+    spo2_style = {'backgroundColor': spo2_color, 'fontSize': '60px', 'color': 'white', 'fontWeight': 'bold','border': '2px solid white'}
+    respiratory_rate_style = {'backgroundColor': respiratory_rate_color, 'fontSize': '60px', 'color': 'white', 'fontWeight': 'bold','border': '2px solid white'}
+    body_temp_style = {'backgroundColor': body_temp_color, 'fontSize': '60px', 'color': 'white', 'fontWeight': 'bold','border': '2px solid white'}
+
+    # Return the updated values and styles
+    return (
+        f"{heart_rate:.1f} bpm", f"{spo2} %", f"{respiratory_rate} /min", f"{body_temp:.1f} °C",
+        heart_rate_style, spo2_style, respiratory_rate_style, body_temp_style
+    )
 
 # Run the app
 if __name__ == '__main__':
