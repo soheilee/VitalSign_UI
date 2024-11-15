@@ -2,7 +2,7 @@
 import numpy as np
 from scipy.signal import find_peaks
 
-def calculate_heart_rate(signal, sampling_rate=1000):
+def calculate_heart_rate(signal, sampling_rate=250):
     """
     Calculates the heart rate from the given signal using peak detection.
     
