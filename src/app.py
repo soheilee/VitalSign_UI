@@ -25,7 +25,7 @@ ppg_df = pd.read_csv('../data/PPG.csv', header=None, names=['PPG'])
 temp_df = pd.read_csv('../data/TEMP.csv', header=None, names=['Temp'])
 
 # Generate time series (1 ms per step)
-sampling_rate = 250  # 250 Hz sampling rate
+sampling_rate = 400  # 250 Hz sampling rate
 time_series = np.arange(0, len(ecg_df) * (1 / sampling_rate), 1 / sampling_rate)
 
 # Define a sliding window size
@@ -33,7 +33,7 @@ window_size = 1000  # Display 1 second of data at 250 Hz
 
 # Define layout
 app.layout = html.Div(style={'backgroundColor': 'black', 'color': 'white', 'padding': '20px'}, children=[
-    dcc.Interval(id='interval-component-graphs', interval=50, n_intervals=0),
+    dcc.Interval(id='interval-component-graphs', interval=40, n_intervals=0),
     dcc.Interval(id='interval-component-vitals', interval=1000, n_intervals=0),
     html.Div(style={'display': 'grid', 'gridTemplateColumns': 'repeat(5, 1fr)', 'gap': '10px'}, children=[
         html.Div(style={'gridColumn': 'span 4', 'gridRow': 'span 2', 'border': '1px solid white', 'padding': '10px'},
@@ -104,9 +104,9 @@ def update_graphs(n):
 
     current_index = (current_index + 10) % len(ecg_df)
 
-    ecg_window = ecg_df['ECG'].iloc[start_index:end_index].to_numpy()
-    ppg_window = ppg_df['PPG'].iloc[start_index:end_index].to_numpy()
-    time_window = time_series[start_index:end_index]
+    ecg_window = ecg_df['ECG'].iloc[start_index:end_index:2].to_numpy()
+    ppg_window = ppg_df['PPG'].iloc[start_index:end_index:2].to_numpy()
+    time_window = time_series[start_index:end_index:2]
 
     ecg_filtered = low_pass_filter(ecg_window, cutoff_freq=40, sampling_rate=sampling_rate, padding=True)
     ppg_filtered = low_pass_filter(ppg_window, cutoff_freq=5, sampling_rate=sampling_rate, padding=True)
