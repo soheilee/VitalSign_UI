@@ -21,8 +21,8 @@ class Farzad(Soheil):
             self.ser.close()
             self.ser.open()
         else:
-            ecg_df = pd.read_csv('ECG.csv', header=None, names=['ECG'])
-            ppg_df = pd.read_csv('PPG.csv', header=None, names=['PPG'])
+            ecg_df = pd.read_csv('../data/ECG.csv', header=None, names=['ECG'])
+            ppg_df = pd.read_csv('../data/PPG.csv', header=None, names=['PPG'])
             self.ecg_array = ecg_df.to_numpy().reshape(-1)
             self.ppg_array = ppg_df.to_numpy().reshape(-1)
             self.ecg_idx = 0
@@ -34,7 +34,7 @@ class Farzad(Soheil):
         self.ppg_buffer = collections.deque(maxlen=Constants.window_size)
 
         self.xplot_idx = 0
-
+        # self.setup_callbacks(self.ecg_filtered, self.ppg_filtered)
 
     def run_farzad(self):
         while True:
@@ -60,4 +60,6 @@ class Farzad(Soheil):
                 self.ppg_idx = (self.ppg_idx + 1) % len(self.ppg_array)
                 self.ecg_filtered = list(self.ecg_buffer)
                 self.ppg_filtered = list(self.ppg_buffer)
+                self.ecg = self.ecg_filtered
+                self.ppg = self.ppg_filtered
                 time.sleep(0.01)

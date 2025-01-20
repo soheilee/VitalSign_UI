@@ -7,9 +7,11 @@ import plotly.graph_objs as go
 from alarm_engine import check_vital_signs  # For alarm checks
 
 
-class Soheil():
+class Soheil:
     def __init__(self):
-        super().__init__()
+        self.ecg = None
+        self.ppg = None
+        self.xticks = None
         self.app = dash.Dash(__name__)
 
     def create_layout(self):
@@ -53,7 +55,7 @@ class Soheil():
                 ]),
             ]),
         ])
-    def setup_callbacks(self, ecg, ppg):
+    def setup_callbacks(self):
         @self.app.callback(
             [Output('ecg-plot', 'figure'),
              Output('ppg-plot', 'figure')],
@@ -61,17 +63,17 @@ class Soheil():
         )
 
         def update_graphs(n):
-            if len(ecg) < 10:
+            if len(self.ecg) < 10:
                 return None, None
 
             xticks = np.array(self.xticks)
 
             ecg_fig = go.Figure()
-            ecg_fig.add_trace(go.Scatter(x=xticks, y=ecg, mode='lines', name='ECG', line=dict(color='red', width=5)))
+            ecg_fig.add_trace(go.Scatter(x=xticks, y=self.ecg, mode='lines', name='ECG', line=dict(color='red', width=5)))
             ecg_fig.update_layout(title='ECG', plot_bgcolor='black', paper_bgcolor='black', font_color='white')
 
             ppg_fig = go.Figure()
-            ppg_fig.add_trace(go.Scatter(x=xticks, y=ppg, mode='lines', name='PPG', line=dict(color='lightblue', width=5)))
+            ppg_fig.add_trace(go.Scatter(x=xticks, y=self.ppg, mode='lines', name='PPG', line=dict(color='lightblue', width=5)))
             ppg_fig.update_layout(title='PPG', plot_bgcolor='black', paper_bgcolor='black', font_color='white')
             return ecg_fig, ppg_fig
 

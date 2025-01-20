@@ -7,7 +7,7 @@ class MainOP(Farzad):
     def __init__(self):
         super().__init__()
         self.app.layout = self.create_layout()
-        self.setup_callbacks(self.ecg_filtered, self.ppg_filtered)
+        self.setup_callbacks()
         webbrowser.open('http://127.0.0.1:8050/')
 
         with futures.ThreadPoolExecutor() as executor:
