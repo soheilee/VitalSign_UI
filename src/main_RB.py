@@ -6,7 +6,7 @@ from get_data import *
 class MainOP(Farzad):
     def __init__(self):
         super().__init__()
-        self.app.layout = self.create_layout()
+        self.app.layout = self.set_layout()
         self.setup_callbacks()
         webbrowser.open('http://127.0.0.1:8050/')
 
